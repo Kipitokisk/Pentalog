@@ -1,17 +1,26 @@
+
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.SQLException
+
+
 fun main(args: Array<String>) {
-    val user = User.createUser("Dimon", "victor.reven@gmail.com", "KOTLIN", "30")
+    val url = "jdbc:mysql://localhost:3306/ParkingDB?user=root&password=dotdot123"
+    var connection : Connection? = null
+    try{
+        connection = DriverManager.getConnection(url)
 
-    println("User Nickname: ${user.getNickname()}")
-    println("User Email: ${user.getEmail()}")
-    println("User ID: ${user.getId()}")
+        val query = "SELECT * FROM Users"
+        val statement = connection?.createStatement()
+        val resultSet: ResultSet? = statement?.executeQuery(query)
 
-    // Check if a provided password is correct
-    val userInputPassword = "KOTLIN" // This is the password entered by the user
-    val isPasswordCorrect = user.checkPassword(userInputPassword)
-
-    if (isPasswordCorrect) {
-        println("Password is correct")
-    } else {
-        println("Password is incorrect")
+        while (resultSet?.next() == true) {
+            val Nickname = resultSet.getString("Nickname")
+            println("Column Name: $Nickname")}
+    }catch(e: SQLException){
+        e.printStackTrace()
+    }finally{
+        connection?.close()
     }
 }

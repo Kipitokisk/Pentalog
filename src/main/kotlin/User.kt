@@ -1,31 +1,31 @@
-import org.mindrot.jbcrypt.BCrypt
 
-class User(
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.jackson.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class User(
     private val nickname: String,
     private val email: String,
     private val hashedPassword: String,
     private val id: String
 ) {
-    fun getNickname(): String {
-        return nickname
-    }
-
-    fun getEmail(): String {
-        return email
-    }
-
-    fun getId(): String {
-        return id
-    }
-
-    fun checkPassword(plainPassword: String): Boolean {
-        return BCrypt.checkpw(plainPassword, hashedPassword)
-    }
-
-    companion object {
-        fun createUser(nickname: String, email: String, plainPassword: String, id: String): User {
-            val hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt())
-            return User(nickname, email, hashedPassword, id)
+    fun Application.module() {
+        install(ContentNegotiation) {
+            jackson { }
+        }
+        install(StatusPages) {
+            exception<Throwable> { cause ->
+                call.respond(HttpStatusCode.InternalServerError, cause.localizedMessage)
+            }
+        }
+        routing {
+            route("/api/User") {
+            }
         }
     }
 }
