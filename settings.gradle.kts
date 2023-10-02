@@ -1,3 +1,1 @@
-
-rootProject.name = "USER"
-
+rootProject.name = "pentalog"
