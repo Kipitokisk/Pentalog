@@ -9,7 +9,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 class Users{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "UsersID")
+    @Column(name = "usersid")
     var id = 0
     @Column(name ="Nickname")
     var nickname =""
@@ -23,7 +23,6 @@ class Users{
             val passwordEncoder = BCryptPasswordEncoder()
             field = passwordEncoder.encode(value)
         }
-
     fun comparePasswords(password: String): Boolean{
         return BCryptPasswordEncoder().matches(password, this.password)
     }

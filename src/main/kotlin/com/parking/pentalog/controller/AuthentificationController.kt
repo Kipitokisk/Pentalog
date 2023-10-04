@@ -14,6 +14,7 @@ import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.CookieValue
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -74,4 +75,6 @@ class AuthentificationController(private val userService: UserService){
             }
         }
     }
+    @GetMapping("/{userID}")
+    fun getUser(@PathVariable("userID") id: Int): ResponseEntity<Users> = ResponseEntity.ok(userService.getById(id))
 }

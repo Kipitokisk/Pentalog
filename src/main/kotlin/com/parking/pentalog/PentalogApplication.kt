@@ -6,7 +6,6 @@ import org.springframework.boot.runApplication
 
 @SpringBootApplication(exclude =[SecurityAutoConfiguration::class])
 class PentalogApplication
-
 fun main(args: Array<String>) {
 	runApplication<PentalogApplication>(*args)
 }
