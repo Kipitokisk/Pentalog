@@ -69,6 +69,14 @@ export default class ExampleFour extends Component {
     if (currentStatus === "Free") {
       // If the current status is "Free"
       tableData[index][1] = "Occupied";
+
+      // Sort the rows so that "Occupied" rows are at the top
+      tableData.sort((a, b) => {
+        if (a[1] === "Occupied") return -1;
+        if (b[1] === "Occupied") return 1;
+        return 0;
+      });
+
       this.setState({ tableData, anyButtonPressed: true });
     }
   }
@@ -77,15 +85,25 @@ export default class ExampleFour extends Component {
     const { tableData } = this.state;
     tableData[index][2] = !tableData[index][2]; // Toggle the boolean flag
 
-    // If the "Report" button is pressed and it becomes yellow (active), move the row to the top
+    // Find the index of the first row with a yellow ("Occupied") button
+    const yellowButtonIndex = tableData.findIndex(
+      (row) => row[1] === "Occupied"
+    );
+
+    // Move the first yellow ("Occupied") button row to the top
+    if (yellowButtonIndex !== -1) {
+      const movedYellowRow = tableData.splice(yellowButtonIndex, 1);
+      tableData.unshift(movedYellowRow[0]);
+    }
+
+    // If the "Report" button is pressed and it becomes yellow (active), move the row below the yellow button
     if (tableData[index][2]) {
       const movedRow = tableData.splice(index, 1);
-      tableData.unshift(movedRow[0]);
+      tableData.splice(1, 0, movedRow[0]);
     }
 
     this.setState({ tableData });
   }
-
   render() {
     const state = this.state;
 
