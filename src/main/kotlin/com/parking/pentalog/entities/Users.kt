@@ -23,6 +23,8 @@ class Users{
             val passwordEncoder = BCryptPasswordEncoder()
             field = passwordEncoder.encode(value)
         }
+    @OneToOne(mappedBy = "users")
+    var parkingSlots: ParkingSlots? = null
     fun comparePasswords(password: String): Boolean{
         return BCryptPasswordEncoder().matches(password, this.password)
     }

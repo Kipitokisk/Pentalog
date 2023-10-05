@@ -30,7 +30,7 @@ export default function RegisterScreen({navigation}) {
         }
 
         try{
-        const response = await axios.post('https://2f78-46-166-60-20.ngrok.io/api/register', {
+        const response = await axios.post('https://3a35-212-56-211-206.ngrok.io/api/register', {
             nickname: nickname.value,
             email: email.value,
             password: password.value,

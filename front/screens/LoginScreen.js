@@ -25,7 +25,7 @@ export default function LoginScreen({navigation}) {
             return
         }
         try{
-        const response = await axios.post('https://2f78-46-166-60-20.ngrok.io/api/login', {
+        const response = await axios.post('https://3a35-212-56-211-206.ngrok.io/api/login', {
             email: email.value,
             password: password.value,
         });
