@@ -59,6 +59,7 @@ class AuthentificationController(private val userService: UserService){
 
     @GetMapping("/user")
     fun user(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
+
         if (jwt == null) {
             return ResponseEntity.status(401).body(Message("Unauthenticated"))
         } else {
