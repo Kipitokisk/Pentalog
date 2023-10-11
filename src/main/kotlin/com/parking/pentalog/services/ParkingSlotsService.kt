@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service
 class ParkingSlotsService(private val parkingSlotsRepository: ParkingSlotsRepository) {
     fun getById(id: Int): ParkingSlots = this.parkingSlotsRepository.getById(id)
     fun findAll(): List<ParkingSlots> = this.parkingSlotsRepository.findAll()
-    fun existsByParkingSlotsId(parkingSlotsID: Int): Boolean {
-        return parkingSlotsRepository.existsById(parkingSlotsID)
-    }
+    fun existsByParkingSlotsId(parkingSlotsID: Int): Boolean = parkingSlotsRepository.existsById(parkingSlotsID)
     fun saveParkingLot(parkingSlots: ParkingSlots): ParkingSlots = this.parkingSlotsRepository.save(parkingSlots)
 }
