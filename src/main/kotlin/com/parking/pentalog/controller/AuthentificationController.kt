@@ -67,7 +67,6 @@ class AuthentificationController(private val userService: UserService){
                     .setSigningKey("vadim")
                     .parseClaimsJws(jwt)
                     .body
-
                 return ResponseEntity.ok(this.userService.getById(body.issuer.toInt()))
             } catch (e: JwtException) {
                 // Handle JWT parsing or verification errors
