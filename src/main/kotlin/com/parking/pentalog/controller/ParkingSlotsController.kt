@@ -1,6 +1,5 @@
 package com.parking.pentalog.controller
 
-import com.parking.pentalog.DTOs.GetParkingSlotDTO
 import com.parking.pentalog.DTOs.Message
 import com.parking.pentalog.entities.ParkingSlots
 import com.parking.pentalog.services.ParkingSlotsService
