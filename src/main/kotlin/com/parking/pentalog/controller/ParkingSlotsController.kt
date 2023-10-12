@@ -2,6 +2,7 @@ package com.parking.pentalog.controller
 
 import com.parking.pentalog.DTOs.Message
 import com.parking.pentalog.entities.ParkingSlots
+import com.parking.pentalog.entities.Users
 import com.parking.pentalog.services.ParkingSlotsService
 import com.parking.pentalog.services.UserService
 import org.springframework.dao.DataAccessException
@@ -21,7 +22,6 @@ class ParkingSlotsController (private val parkingSlotsService : ParkingSlotsServ
     @PutMapping("/parking-list/{parkingSlotId}/occupy")
     fun occupyParkingSlot(@PathVariable parkingSlotId: Int, @CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
         return try {
-        // Check if the parking slot with the given ID exists in the database
         if (!parkingSlotsService.existsByParkingSlotsId(parkingSlotId)) {
            return ResponseEntity.badRequest().body(Message("Parking Slot Not found"))
         } else {
@@ -39,15 +39,13 @@ class ParkingSlotsController (private val parkingSlotsService : ParkingSlotsServ
             return ResponseEntity.ok(this.parkingSlotsService.saveParkingLot(parkingSlot))
         }
     } catch (e: DataAccessException) {
-        // Handle database-related errors
         return ResponseEntity.status(400).body(Message("Bad request"))
     }
     }
 
     @PutMapping("/parking-list/{parkingSlotId}/free")
-    fun freeParkingSlot(@PathVariable parkingSlotId: Int): ResponseEntity<Any> {
+    fun freeParkingSlot(@PathVariable parkingSlotId: Int, @CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
         return try {
-            // Check if the parking slot with the given ID exists in the database
             if (!parkingSlotsService.existsByParkingSlotsId(parkingSlotId)) {
                 return ResponseEntity.badRequest().body(Message("Parking Slot Not found"))
             } else {
@@ -55,13 +53,20 @@ class ParkingSlotsController (private val parkingSlotsService : ParkingSlotsServ
                 if (parkingSlot.isOccupied == false) {
                     return ResponseEntity.badRequest().body(Message("Parking Slot Already Free"))
                 }
+                val body = Jwts.parser()
+                    .setSigningKey("vadim")
+                    .parseClaimsJws(jwt)
+                    .body
+                val currentUserId = body.issuer.toInt()
+                if (parkingSlot.users?.id != currentUserId) {
+                    return ResponseEntity.badRequest().body(Message("Cannot free the parking slot, as you are not the occupant"))
+                }
                 parkingSlot.isOccupied = false
                 parkingSlot.parkingTime = null
                 parkingSlot.users = null;
                 return ResponseEntity.ok(this.parkingSlotsService.saveParkingLot(parkingSlot))
             }
         } catch (e: DataAccessException) {
-            // Handle database-related errors
             return ResponseEntity.status(400).body(Message("Bad request"))
         }
     }
