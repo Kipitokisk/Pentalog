@@ -1,1 +1,1 @@
-export const BASE_URL = 'http://localhost/api'
+export const BASE_URL = 'https://bbef-212-56-211-206.ngrok.io'
