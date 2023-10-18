@@ -75,6 +75,6 @@ class AuthentificationController(private val userService: UserService){
             }
         }
     }
-    @GetMapping("/{userID}")
+    @GetMapping("/user/{userID}")
     fun getUser(@PathVariable("userID") id: Int): ResponseEntity<Users> = ResponseEntity.ok(userService.getById(id))
 }
