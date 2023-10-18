@@ -9,6 +9,7 @@ import TextInput from '../components/TextInput';
 import {theme} from '../core/theme';
 import {emailValidator} from '../helpers/emailValidator';
 import {passwordValidator} from '../helpers/passwordValidator';
+import {BASE_URL} from '../config'
 import axios from "axios";
 
 export default function LoginScreen({navigation}) {
@@ -24,7 +25,7 @@ export default function LoginScreen({navigation}) {
             return
         }
         try{
-            const response = await axios.post('https://bbef-212-56-211-206.ngrok.io/api/login', {
+            const response = await axios.post(BASE_URL + '/api/login', {
                 email: email.value,
                 password: password.value,
             });

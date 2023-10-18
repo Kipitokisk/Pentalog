@@ -10,4 +10,5 @@ class ParkingSlotsService(private val parkingSlotsRepository: ParkingSlotsReposi
     fun findAll(): List<ParkingSlots> = this.parkingSlotsRepository.findAll()
     fun existsByParkingSlotsId(parkingSlotsID: Int): Boolean = parkingSlotsRepository.existsById(parkingSlotsID)
     fun saveParkingLot(parkingSlots: ParkingSlots): ParkingSlots = this.parkingSlotsRepository.save(parkingSlots)
+
 }

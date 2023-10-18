@@ -11,7 +11,7 @@ import { emailValidator } from '../helpers/emailValidator';
 import { passwordValidator } from '../helpers/passwordValidator';
 import { nameValidator } from '../helpers/nameValidator';
 import axios from 'axios';
-import {BASE_URL} from '../config.js'
+import {BASE_URL} from '../config'
 
 export default function RegisterScreen({ navigation }) {
     const [nickname, setNickname] = useState({ value: '', error: '' });
@@ -36,7 +36,7 @@ export default function RegisterScreen({ navigation }) {
         }
 
         try {
-            const response = await axios.post('https://bbef-212-56-211-206.ngrok.io/api/register', {
+            const response = await axios.post(BASE_URL + '/api/register', {
                 nickname: nickname.value,
                 email: email.value,
                 password: password.value,

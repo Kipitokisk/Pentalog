@@ -16,6 +16,6 @@ class ParkingSlots {
     var parkingTime: Date? = null;
 
     @OneToOne(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "userid")
+    @JoinColumn(name = "usersid")
     var users: Users? = null;
 }
