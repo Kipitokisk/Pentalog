@@ -12,6 +12,7 @@ import java.time.ZoneId
 import java.util.*
 import io.jsonwebtoken.Jwts
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 
 @RestController
 @RequestMapping("/api")
@@ -65,6 +66,36 @@ class ParkingSlotsController (private val parkingSlotsService : ParkingSlotsServ
                 parkingSlot.parkingTime = null
                 parkingSlot.users = null;
                 return ResponseEntity.ok(this.parkingSlotsService.saveParkingLot(parkingSlot))
+            }
+        } catch (e: DataAccessException) {
+            return ResponseEntity.status(400).body(Message("Bad request"))
+        }
+    }
+
+    @PutMapping("/parking-list/empty-all")
+    fun emptyAllParkingSlotsAfterMidnight(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
+        try {
+            // Check if the current time is after midnight (00:00)
+            val now = LocalDateTime.now()
+            val midnight = LocalDate.now().atStartOfDay()
+
+            if (now.isBefore(midnight)) {
+                // If the current time is before midnight, return a message
+                return ResponseEntity.badRequest().body(Message("It's not yet midnight. Cannot empty parking slots."))
+            } else {
+                // Get a list of all occupied parking slots
+                val occupiedSlots = parkingSlotsService.findAll()
+
+                // Iterate through the occupied parking slots and free them
+                for (parkingSlot in occupiedSlots) {
+                    parkingSlot.isOccupied = false
+                    parkingSlot.parkingTime = null
+                    parkingSlot.users = null
+                    parkingSlotsService.saveParkingLot(parkingSlot)
+                }
+
+                // Return a success message
+                return ResponseEntity.ok(Message("All parking slots have been emptied after midnight."))
             }
         } catch (e: DataAccessException) {
             return ResponseEntity.status(400).body(Message("Bad request"))
