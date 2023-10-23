@@ -70,7 +70,6 @@ class AuthentificationController(private val userService: UserService){
                     .body
                 return ResponseEntity.ok(this.userService.getById(body.issuer.toInt()))
             } catch (e: JwtException) {
-                // Handle JWT parsing or verification errors
                 return ResponseEntity.status(401).body(Message("Invalid token"))
             }
         }

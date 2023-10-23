@@ -1,5 +1,6 @@
 package com.parking.pentalog.services
 
+import com.parking.pentalog.entities.ParkingReports
 import com.parking.pentalog.entities.ParkingSlots
 import com.parking.pentalog.repositories.ParkingSlotsRepository
 import org.springframework.stereotype.Service

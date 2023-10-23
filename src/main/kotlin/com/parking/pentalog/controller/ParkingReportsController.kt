@@ -1,6 +1,7 @@
 package com.parking.pentalog.controller
 
 import ReportDTO
+import com.parking.pentalog.DTOs.Message
 import com.parking.pentalog.entities.ParkingReports
 import com.parking.pentalog.services.ParkingReportsService
 import com.parking.pentalog.services.ParkingSlotsService
@@ -18,8 +19,8 @@ class ParkingReportsController (private val parkingReportsService: ParkingReport
                                 private val parkingSlotService: ParkingSlotsService, private val userService: UserService){
     @PostMapping("/parking-list/{parkingSlotId}/report")
     fun reportParkingLot(@PathVariable parkingSlotId: Int, response: HttpServletResponse): ResponseEntity<ReportDTO> {
-        // Fetch the parking lot by ID
         val parkingLot = parkingSlotService.getById(parkingSlotId)
+        val userId = parkingLot.users?.id
 
         if (parkingLot != null) {
             val parkingReport = ParkingReports()
@@ -27,12 +28,12 @@ class ParkingReportsController (private val parkingReportsService: ParkingReport
             parkingReport.parkingSlots = parkingLot
             val savedReport = parkingReportsService.saveReport(parkingReport)
 
-            // Create a DTO to return the data
             val reportDTO = ReportDTO(
                 savedReport.id,
                 savedReport.reportTime,
                 savedReport.isPending,
-                parkingLot.id
+                parkingLot.id,
+                userId
             )
 
             return ResponseEntity.ok(reportDTO)
@@ -41,16 +42,15 @@ class ParkingReportsController (private val parkingReportsService: ParkingReport
         }
     }
 
-    @DeleteMapping("/parking-list/{parkingLotId}/delete-reports")
-    fun deleteReportsByParkingLot(@PathVariable parkingLotId: Int): ResponseEntity<String> {
-        if (parkingSlotService.existsByParkingSlotsId(parkingLotId)) {
-            // If the parking lot exists, delete its associated reports
-            parkingReportsService.deleteReportsByParkingLot(parkingSlotService.getById(parkingLotId))
-            return ResponseEntity.ok("Reports associated with parking lot ID $parkingLotId have been deleted.")
+
+    @DeleteMapping("/parking-list/{parkingSlotId}/report-delete")
+    fun removeReportsForParkingLot(@PathVariable parkingSlotId: Int): ResponseEntity<Any> {
+        val removedCount = parkingReportsService.removeReportsByParkingSlotId(parkingSlotId)
+
+        return if (removedCount > 0) {
+            ResponseEntity.ok(Message("Deleted $removedCount reports from Parking Slot: $parkingSlotId"))
         } else {
-            // If the parking lot does not exist, return a not found response
-            return ResponseEntity.notFound().build()
+            ResponseEntity.notFound().build()
         }
     }
-
 }

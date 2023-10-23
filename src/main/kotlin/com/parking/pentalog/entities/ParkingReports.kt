@@ -19,7 +19,6 @@ class ParkingReports {
     @Column(name = "ispending")
     var isPending: Boolean = true
 
-    @JsonBackReference
     @ManyToOne(cascade = [CascadeType.ALL])
     @JoinColumn(name = "parkingslotsid", nullable = false)
     var parkingSlots: ParkingSlots? = null
