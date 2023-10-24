@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, ScrollView, Alert } from 'react-native';
 import { Table, Row } from 'react-native-table-component';
 import axios from 'axios';
-import { BASE_URL } from '../config.js';
+import { BASE_URL } from '../config';
 
 const MainScreen = () => {
   const [parkingData, setParkingData] = useState([]);
   const [jwtToken, setJwtToken] = useState(null);
   const [userData, setUserData] = useState();
+  const [serverDown, setServerDown] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -27,9 +28,10 @@ const MainScreen = () => {
     })
       .then(response => {
         setUserData(response.data);
+        setServerDown(false);
       })
       .catch(error => {
-        console.error('Error fetching user data:', error);
+        console.log("user error")
       });
   };
 
@@ -37,10 +39,33 @@ const MainScreen = () => {
     axios.get(BASE_URL + '/api/parking-list')
       .then(response => {
         setParkingData(response.data);
+        setServerDown(false);
       })
       .catch(error => {
-        showMessage('An error occurred while fetching parking data. Please try again.');
-        console.error('Error fetching parking data:', error);
+        if (error.response && error.response.status === 502) {
+          setServerDown(true);
+        } else {
+        console.log("parking list error")
+        }
+      });
+  };
+
+  const handleReport = (parkingLotId, token) => {
+    const apiUrl = BASE_URL + '/api/parking-list/${parkingLotId}/report';
+
+    axios
+      .post(apiUrl, null, {
+        headers: {
+          Authorization: 'Bearer ' + token,
+        },
+      })
+      .then((response) => {
+        showMessage('Parking lot reported successfully.');
+        fetchData();
+      })
+      .catch((error) => {
+        showMessage('An error occurred while reporting the parking lot. Please try again.');
+        console.error('Error reporting parking lot:', error);
       });
   };
 
@@ -48,7 +73,6 @@ const MainScreen = () => {
     const newStatus = isOccupied ? 'free' : 'occupy';
     const apiUrl = BASE_URL + '/api/parking-list/' + id + '/' + newStatus;
 
-    // Show a confirmation alert only when freeing a parking lot
     if (isOccupied) {
       if (isCurrentUserOccupying(id)) {
         Alert.alert(
@@ -68,7 +92,7 @@ const MainScreen = () => {
                       Authorization: 'Bearer ' + token,
                     },
                   })
-                  .then((response) => {
+                  .then(() => {
                     fetchData();
                   })
                   .catch((error) => {
@@ -84,14 +108,13 @@ const MainScreen = () => {
         showMessage('You can only leave parking lots that you occupy.');
       }
     } else {
-      // If the parking lot is not occupied, update the status directly without confirmation
       axios
         .put(apiUrl, null, {
           headers: {
             Authorization: 'Bearer ' + token,
           },
         })
-        .then((response) => {
+        .then(() => {
           fetchData();
         })
         .catch((error) => {
@@ -105,20 +128,6 @@ const MainScreen = () => {
     return userData?.id === parkingData.find((lot) => lot.id === parkingLotId)?.users?.id;
   };
 
-  const tableHead = ['Parking Lot', 'Status'];
-
-  const renderItem = (item, index) => (
-    <Row
-          key={index}
-          data={[
-            <Text style={[styles.boldText, styles.bigText, { textAlign: 'center' }]}>{item.id.toString()}</Text>,
-            renderOccupiedButton(item.id, item.isOccupied, item.users ? item.users.id : null, userData?.id),
-          ]}
-          style={index % 2 === 0 ? styles.placeNrCell : styles.statusCell}
-          textStyle={styles.boldText}
-        />
-  );
-
   const renderOccupiedButton = (parkingLotId, isOccupied, parkingUserId, userId) => (
     <TouchableOpacity
       style={isOccupied ? (userId === parkingUserId ? styles.userOccupiedButton : styles.occupiedButton) : styles.freeButton}
@@ -130,8 +139,30 @@ const MainScreen = () => {
     </TouchableOpacity>
   );
 
-  // Sort parkingData based on isOccupied property (occupied lots below free ones)
-  // 'You Occupied' row should always come first
+  const renderReportButton = (parkingLotId, token, isPending) => (
+    <TouchableOpacity
+      style={isPending ? styles.reportButtonPending : styles.reportButton}
+      onPress={() => handleReport(parkingLotId, token)}
+    >
+      <Text style={isPending ? styles.reportButtonTextPending : styles.reportButtonText}>
+        Report
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderItem = (item, index) => (
+    <Row
+      key={index}
+      data={[
+        <Text style={[styles.boldText, styles.bigText, { textAlign: 'center' }]}>{item.id.toString()}</Text>,
+        renderOccupiedButton(item.id, item.isOccupied, item.users ? item.users.id : null, userData?.id),
+        renderReportButton(item.id, jwtToken, item.reports && item.reports.length > 0 && item.reports[0].isPending),
+      ]}
+      style={index % 2 === 0 ? styles.placeNrCell : styles.statusCell}
+      textStyle={styles.boldText}
+    />
+  );
+
   const sortedParkingData = [...parkingData].sort((a, b) => {
     if (a.isOccupied && a.users && a.users.id === userData?.id) return -1; // 'You Occupied' row first
     if (b.isOccupied && b.users && b.users.id === userData?.id) return 1; // 'You Occupied' row first
@@ -141,20 +172,28 @@ const MainScreen = () => {
   });
 
   const showMessage = (message) => {
-    Alert.alert('Error', message, [{ text: 'OK' }]);
+    Alert.alert('Info', message, [{ text: 'OK' }]);
   };
 
-  return (
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.container}>
-          <Table borderStyle={{ borderWidth: 1, borderColor: '#C1C0B9' }}>
-            <Row data={tableHead} style={styles.head} textStyle={[styles.boldText, styles.whiteText, { textAlign: 'center' }]} />
-            {sortedParkingData.map((item, index) => renderItem(item, index))}
-          </Table>
-        </View>
-      </ScrollView>
+  if (serverDown) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Server is Down. Please try again later.</Text>
+      </View>
     );
-  };
+  }
+
+  return (
+    <ScrollView style={styles.scrollView}>
+      <View style={styles.container}>
+        <Table borderStyle={{ borderWidth: 1, borderColor: '#C1C0B9' }}>
+          <Row data={['Parking Lot', 'Status', 'Report']} style={styles.head} textStyle={[styles.boldText, styles.whiteText, { textAlign: 'center' }]} />
+          {sortedParkingData.map((item, index) => renderItem(item, index))}
+        </Table>
+      </View>
+    </ScrollView>
+  );
+};
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -188,6 +227,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  reportButton: {
+    backgroundColor: 'lightgrey',
+    padding: 10,
+    borderRadius: 5,
+  },
+  reportButtonPending: {
+    backgroundColor: 'purple',
+    padding: 10,
+    borderRadius: 5,
+  },
+  reportButtonText: {
+    color: 'black',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  reportButtonTextPending: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
   boldText: {
     fontWeight: 'bold',
   },
@@ -204,10 +265,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   head: {
-      height: 40,
-      backgroundColor: '#537791',
-      color:'white',
-    },
+    height: 40,
+    backgroundColor: '#537791',
+    color: 'white',
+  },
+  container: {
+    flex: 1,
+    padding: 16,
+    paddingTop: 30,
+    backgroundColor: '#fff',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'red',
+  },
 });
 
 export default MainScreen;

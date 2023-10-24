@@ -1,7 +1,9 @@
 package com.parking.pentalog.entities
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
-import java.util.Date
+import java.util.*
+
 
 @Entity
 @Table(name = "parking_slots")
@@ -9,7 +11,11 @@ class ParkingSlots {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "parkingslotsid")
-    val id = 0
+    var id = 0
+    @OneToMany(mappedBy = "parkingSlots", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    private val _parkingReports: List<ParkingReports> = mutableListOf()
+
+    val parkingReports get() = _parkingReports.toList()
     @Column(name = "isoccupied")
     var isOccupied: Boolean = false;
     @Column(name = "parkingtime")
