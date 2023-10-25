@@ -2,6 +2,8 @@ package com.parking.pentalog.controller
 
 import ReportDTO
 import com.parking.pentalog.DTOs.Message
+import com.parking.pentalog.DTOs.ParkingSlotDTO
+import com.parking.pentalog.DTOs.UsersDTO
 import com.parking.pentalog.entities.ParkingReports
 import com.parking.pentalog.services.ParkingReportsService
 import com.parking.pentalog.services.ParkingSlotsService
@@ -17,10 +19,35 @@ import java.util.*
 @RequestMapping("/api")
 class ParkingReportsController (private val parkingReportsService: ParkingReportsService,
                                 private val parkingSlotService: ParkingSlotsService, private val userService: UserService){
+
+    @GetMapping("/parking-list-report")
+    fun parkingReportsList(): ResponseEntity<List<ReportDTO>> {
+        val parkingReports = parkingReportsService.findAll()
+            .map { report ->
+                val parkingSlot = report.parkingSlots
+                val user = parkingSlot?.users
+
+                ReportDTO(
+                    report.id,
+                    report.reportTime,
+                    report.isPending,
+                    ParkingSlotDTO(
+                        parkingSlot!!.id,
+                        parkingSlot.isOccupied,
+                        parkingSlot?.parkingTime,
+                        user?.let { UsersDTO(it.id, it.nickname, it.email) }
+                    )
+                )
+            }
+
+        return ResponseEntity.ok(parkingReports)
+    }
+
     @PostMapping("/parking-list/{parkingSlotId}/report")
     fun reportParkingLot(@PathVariable parkingSlotId: Int, response: HttpServletResponse): ResponseEntity<ReportDTO> {
         val parkingLot = parkingSlotService.getById(parkingSlotId)
         val userId = parkingLot.users?.id
+
 
         if (parkingLot != null) {
             val parkingReport = ParkingReports()
@@ -32,8 +59,10 @@ class ParkingReportsController (private val parkingReportsService: ParkingReport
                 savedReport.id,
                 savedReport.reportTime,
                 savedReport.isPending,
-                parkingLot.id,
-                userId
+                ParkingSlotDTO(parkingLot.id, parkingLot.isOccupied, parkingLot.parkingTime, UsersDTO(
+                    parkingLot.users!!.id, parkingLot
+                    .users!!.nickname, parkingLot.users!!.email)
+                )
             )
 
             return ResponseEntity.ok(reportDTO)

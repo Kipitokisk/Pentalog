@@ -29,6 +29,7 @@ dependencies {
 	implementation("javax.xml.bind:jaxb-api:2.3.1")
 	runtimeOnly("com.mysql:mysql-connector-j")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation(kotlin("stdlib-jdk8"))
 
 }
 
@@ -41,4 +42,7 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+kotlin {
+    jvmToolchain(11)
 }

@@ -12,11 +12,10 @@ class ParkingSlots {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "parkingslotsid")
     var id = 0
-    @JsonManagedReference
-    @OneToMany(
-        mappedBy = "parkingSlots", cascade = [CascadeType.ALL], fetch = FetchType.LAZY
-    )
-    private val parkingReports: List<ParkingReports> = mutableListOf()
+    @OneToMany(mappedBy = "parkingSlots", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    private val _parkingReports: List<ParkingReports> = mutableListOf()
+
+    val parkingReports get() = _parkingReports.toList()
     @Column(name = "isoccupied")
     var isOccupied: Boolean = false;
     @Column(name = "parkingtime")

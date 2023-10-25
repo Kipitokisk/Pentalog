@@ -19,7 +19,7 @@ class ParkingReports {
     @Column(name = "ispending")
     var isPending: Boolean = true
 
-    @ManyToOne(cascade = [CascadeType.ALL])
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "parkingslotsid", nullable = false)
     var parkingSlots: ParkingSlots? = null
 }
