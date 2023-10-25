@@ -18,4 +18,11 @@ class ParkingReportsService(private val parkingReportsRepository: ParkingReports
         parkingReportsRepository.deleteInBatch(reports)
         return reports.size
     }
+    fun deleteParkingReport(reportId: Int) {
+        // Check if the report exists before attempting to delete it
+        val existingReport = parkingReportsRepository.findById(reportId)
+        if (existingReport.isPresent) {
+            parkingReportsRepository.delete(existingReport.get())
+        }
+    }
 }

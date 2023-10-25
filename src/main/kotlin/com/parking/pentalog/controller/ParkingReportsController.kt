@@ -9,8 +9,10 @@ import com.parking.pentalog.services.ParkingReportsService
 import com.parking.pentalog.services.ParkingSlotsService
 import com.parking.pentalog.services.UserService
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.dao.DataAccessException
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
@@ -82,4 +84,32 @@ class ParkingReportsController (private val parkingReportsService: ParkingReport
             ResponseEntity.notFound().build()
         }
     }
+
+    @DeleteMapping("/parking-list-report/empty-all")
+    fun emptyAllParkingReportsAfterMidnight(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
+        try {
+            // Check if the current time is after midnight (00:00)
+            val now = LocalDateTime.now()
+            val midnight = LocalDate.now().atStartOfDay()
+
+            if (now.isBefore(midnight)) {
+                // If the current time is before midnight, return a message
+                return ResponseEntity.badRequest().body(Message("It's not yet midnight. Cannot delete parking reports."))
+            } else {
+                // Get a list of all parking reports
+                val parkingReports = parkingReportsService.findAll() // Assuming you have a service for parking reports
+
+                // Iterate through the parking reports and delete them
+                for (report in parkingReports) {
+                    report.id?.let { parkingReportsService.deleteParkingReport(it) } // Assuming you have a service method to delete parking reports
+                }
+
+                // Return a success message
+                return ResponseEntity.ok(Message("All parking reports have been deleted after midnight."))
+            }
+        } catch (e: DataAccessException) {
+            return ResponseEntity.status(400).body(Message("Bad request"))
+        }
+    }
+
 }
