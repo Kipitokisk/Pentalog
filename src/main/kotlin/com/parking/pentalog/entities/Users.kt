@@ -11,11 +11,11 @@ class Users{
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "usersid")
     var id = 0
-    @Column(name ="nickname")
+    @Column(name ="Nickname")
     var nickname =""
-    @Column(name ="email", unique = true)
+    @Column(name ="Email", unique = true)
     var email =""
-    @Column(name ="pass")
+    @Column(name ="Pass")
     var password = ""
         @JsonIgnore
         get() = field

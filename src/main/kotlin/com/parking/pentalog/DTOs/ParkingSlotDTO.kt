@@ -7,4 +7,4 @@ class ParkingSlotDTO(
     val isOccupied: Boolean,
     val parkingTime: Date?,
     val users: UsersDTO?
-    )
+)

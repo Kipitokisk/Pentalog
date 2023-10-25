@@ -6,26 +6,25 @@ import { BASE_URL } from '../config';
 
 const MainScreen = () => {
   const [parkingData, setParkingData] = useState([]);
+  const [parkingReports, setParkingReports] = useState([]);
   const [jwtToken, setJwtToken] = useState(null);
   const [userData, setUserData] = useState();
   const [serverDown, setServerDown] = useState(false);
+  const [pressedReportButtonId, setPressedReportButtonId] = useState(null);
 
   useEffect(() => {
     fetchData();
     fetchUserData();
     const intervalID = setInterval(() => {
       fetchData();
+      fetchReports();
     }, 1000);
 
     return () => clearInterval(intervalID);
   }, []);
 
   const fetchUserData = () => {
-    axios.get(BASE_URL + '/api/user', {
-      headers: {
-        Cookie: 'jwt=' + jwtToken,
-      },
-    })
+    axios.get(BASE_URL + '/api/user')
       .then(response => {
         setUserData(response.data);
         setServerDown(false);
@@ -35,39 +34,30 @@ const MainScreen = () => {
       });
   };
 
-  const fetchData = () => {
-    axios.get(BASE_URL + '/api/parking-list')
-      .then(response => {
-        setParkingData(response.data);
-        setServerDown(false);
-      })
-      .catch(error => {
-        if (error.response && error.response.status === 502) {
-          setServerDown(true);
-        } else {
-        console.log("parking list error")
-        }
-      });
-  };
+ const fetchData = () => {
+   axios.get(BASE_URL + '/api/parking-list')
+     .then(response => {
+       setParkingData(response.data);
+       setServerDown(false);
+     })
+     .catch(error => {
+       if (error.response && error.response.status === 502) {
+         setServerDown(true);
+       } else {
+         console.log("parking list error")
+       }
+     });
+ };
 
-  const handleReport = (parkingLotId, token) => {
-    const apiUrl = BASE_URL + '/api/parking-list/${parkingLotId}/report';
-
-    axios
-      .post(apiUrl, null, {
-        headers: {
-          Authorization: 'Bearer ' + token,
-        },
-      })
-      .then((response) => {
-        showMessage('Parking lot reported successfully.');
-        fetchData();
-      })
-      .catch((error) => {
-        showMessage('An error occurred while reporting the parking lot. Please try again.');
-        console.error('Error reporting parking lot:', error);
-      });
-  };
+ const fetchReports = () => {
+   axios.get(BASE_URL + '/api/parking-list-report')
+     .then(response => {
+       setParkingReports(response.data);
+     })
+     .catch(error => {
+       console.log("parking reports error")
+     });
+ };
 
   const updateOccupiedStatus = (id, isOccupied, token) => {
     const newStatus = isOccupied ? 'free' : 'occupy';
@@ -96,7 +86,7 @@ const MainScreen = () => {
                     fetchData();
                   })
                   .catch((error) => {
-                    showMessage('An error occurred. Please try again.');
+                    Alert.alert('You can only occupy one lot.');
                     console.error('Error updating parking status:', error);
                   });
               },
@@ -116,9 +106,10 @@ const MainScreen = () => {
         })
         .then(() => {
           fetchData();
+          fetchReports();
         })
         .catch((error) => {
-          showMessage('An error occurred. Please try again.');
+          Alert.alert('You can only occupy one lot.');
           console.error('Error updating parking status:', error);
         });
     }
@@ -128,52 +119,144 @@ const MainScreen = () => {
     return userData?.id === parkingData.find((lot) => lot.id === parkingLotId)?.users?.id;
   };
 
-  const renderOccupiedButton = (parkingLotId, isOccupied, parkingUserId, userId) => (
-    <TouchableOpacity
-      style={isOccupied ? (userId === parkingUserId ? styles.userOccupiedButton : styles.occupiedButton) : styles.freeButton}
-      onPress={() => updateOccupiedStatus(parkingLotId, isOccupied, jwtToken)}
-    >
-      <Text style={isOccupied && userId === parkingUserId ? styles.userOccupiedButtonText : styles.buttonText}>
-        {isOccupied ? (userId === parkingUserId ? 'You Occupied' : 'Occupied') : 'Free'}
-      </Text>
-    </TouchableOpacity>
-  );
+  const submitReport = async (parkingLotId) => {
+    try {
+      await axios.post(`${BASE_URL}/api/parking-list/${parkingLotId}/report`);
+      await fetchData();
+      Alert.alert('Success', 'Report submitted successfully');
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      Alert.alert('Error', 'Failed to submit report. Please try again.');
+    } finally {
+      setPressedReportButtonId(parkingLotId);
+    }
+  };
 
-  const renderReportButton = (parkingLotId, token, isPending) => (
-    <TouchableOpacity
-      style={isPending ? styles.reportButtonPending : styles.reportButton}
-      onPress={() => handleReport(parkingLotId, token)}
-    >
-      <Text style={isPending ? styles.reportButtonTextPending : styles.reportButtonText}>
-        Report
-      </Text>
-    </TouchableOpacity>
-  );
+  const handleReport = async (parkingLotId) => {
+    const isAlreadyReported = pressedReportButtonId === parkingLotId || parkingReports.some(report => report.parkingLot.id === parkingLotId);
+    const isOccupiedByCurrentUser = isCurrentUserOccupying(parkingLotId);
 
-  const renderItem = (item, index) => (
-    <Row
-      key={index}
-      data={[
-        <Text style={[styles.boldText, styles.bigText, { textAlign: 'center' }]}>{item.id.toString()}</Text>,
-        renderOccupiedButton(item.id, item.isOccupied, item.users ? item.users.id : null, userData?.id),
-        renderReportButton(item.id, jwtToken, item.reports && item.reports.length > 0 && item.reports[0].isPending),
-      ]}
-      style={index % 2 === 0 ? styles.placeNrCell : styles.statusCell}
-      textStyle={styles.boldText}
-    />
-  );
+    if (isOccupiedByCurrentUser) {
+      Alert.alert('Cannot Report', 'You cannot report a parking lot that is occupied by you.');
+      return;
+    }
+
+    if (isAlreadyReported) {
+      Alert.alert(
+        'Confirm Report',
+        'You have already reported this parking lot. Do you want to report it again?',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel',
+          },
+          {
+            text: 'Report Again',
+            onPress: async () => {
+              await submitReport(parkingLotId);
+              fetchData();
+            },
+          },
+        ],
+      );
+    } else {
+      await submitReport(parkingLotId);
+      fetchData();
+    }
+  };
+
+  const resolveReport = async (parkingLotId) => {
+    try {
+      await axios.delete(`${BASE_URL}/api/parking-list/${parkingLotId}/report-delete`);
+      fetchData();
+      fetchReports();
+      Alert.alert('Success', 'Report deleted successfully');
+    } catch (error) {
+      console.error('Error deleting report:', error);
+      Alert.alert('Error', 'Failed to delete report. Please try again.');
+    } finally {
+      setPressedReportButtonId(null); // Reset the pressedReportButtonId
+    }
+  };
+
+  const renderOccupiedButton = (parkingLotId, isOccupied, parkingUserId, userId) => {
+    const hasReports = parkingReports.some(report => report.parkingLot.id === parkingLotId);
+
+    if (isOccupied && userId === parkingUserId && hasReports) {
+      return (
+        <TouchableOpacity
+          style={styles.resolveButton}
+          onPress={() => resolveReport(parkingLotId)}
+        >
+          <Text style={styles.resolveButtonText}>Hold to Resolve</Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity
+        style={isOccupied ? (userId === parkingUserId ? styles.userOccupiedButton : styles.occupiedButton) : styles.freeButton}
+        onPress={() => updateOccupiedStatus(parkingLotId, isOccupied, jwtToken)}
+      >
+        <Text style={isOccupied && userId === parkingUserId ? styles.userOccupiedButtonText : styles.buttonText}>
+          {isOccupied ? (userId === parkingUserId ? 'You Occupied' : 'Occupied') : 'Free'}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderItem = (item, index) => {
+    const hasReports = parkingReports.some(report => report.parkingLot.id === item.id);
+    const isOccupiedByCurrentUser = item.isOccupied && item.users && item.users.id === userData?.id;
+
+    if (isOccupiedByCurrentUser && hasReports) {
+      return (
+        <Row
+          key={index}
+          data={[
+            <Text style={[styles.boldText, styles.bigText, { textAlign: 'center' }]}>{item.id.toString()}</Text>,
+            <TouchableOpacity
+              style={styles.resolveButton}
+              onPress={() => resolveReport(item.id)}
+            >
+              <Text style={styles.resolveButtonText}>Hold to Resolve</Text>
+            </TouchableOpacity>,
+          ]}
+          style={index % 2 === 0 ? styles.placeNrCell : styles.statusCell}
+          textStyle={styles.boldText}
+        />
+      );
+    }
+
+    return (
+      <Row
+        key={index}
+        data={[
+          <Text style={[styles.boldText, styles.bigText, { textAlign: 'center' }]}>{item.id.toString()}</Text>,
+          renderOccupiedButton(item.id, item.isOccupied, item.users ? item.users.id : null, userData?.id),
+          <TouchableOpacity
+            style={[
+              styles.reportButton,
+              { backgroundColor: hasReports ? 'purple' : 'grey' },
+            ]}
+            onPress={() => handleReport(item.id)}
+          >
+            <Text style={styles.buttonText}>Report</Text>
+          </TouchableOpacity>,
+        ]}
+        style={index % 2 === 0 ? styles.placeNrCell : styles.statusCell}
+        textStyle={styles.boldText}
+      />
+    );
+  };
 
   const sortedParkingData = [...parkingData].sort((a, b) => {
-    if (a.isOccupied && a.users && a.users.id === userData?.id) return -1; // 'You Occupied' row first
-    if (b.isOccupied && b.users && b.users.id === userData?.id) return 1; // 'You Occupied' row first
+    if (a.isOccupied && a.users && a.users.id === userData?.id) return -1;
+    if (b.isOccupied && b.users && b.users.id === userData?.id) return 1;
     if (a.isOccupied && !b.isOccupied) return 1;
     if (!a.isOccupied && b.isOccupied) return -1;
     return 0;
   });
-
-  const showMessage = (message) => {
-    Alert.alert('Info', message, [{ text: 'OK' }]);
-  };
 
   if (serverDown) {
     return (
@@ -227,24 +310,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  reportButton: {
-    backgroundColor: 'lightgrey',
+  resolveButton: {
+    backgroundColor: 'orange',
     padding: 10,
     borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  reportButtonPending: {
-    backgroundColor: 'purple',
-    padding: 10,
-    borderRadius: 5,
-  },
-  reportButtonText: {
+  resolveButtonText: {
     color: 'black',
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  reportButtonTextPending: {
-    color: 'white',
     textAlign: 'center',
     fontSize: 16,
     fontWeight: 'bold',
@@ -284,6 +358,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: 'red',
+  },
+  reportButton: {
+    backgroundColor: 'grey',
+    padding: 10,
+    borderRadius: 5,
   },
 });
 
