@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Alert } from "react-native";
 import {
   StyleSheet,
   View,
@@ -6,8 +7,42 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import {
+  requestUserPermission,
+  NotificationListener,
+} from "./node_modules/react-native-push-notification/src/main/utils/pushnotification_helper";
 import { Table, TableWrapper, Row, Cell } from "react-native-table-component";
+const App = () => {
+  useEffect(() => {
+    requestUserPermission();
+    NotificationListener();
+  }, []);
+};
+const saveUserId = async (userId) => {
+  try {
+    await AsyncStorage.setItem("userId", userId);
+    console.log("User ID saved successfully.");
+  } catch (error) {
+    console.error("Error saving user ID: ", error);
+  }
+};
 
+// Function to load the user's id_value
+const loadUserId = async () => {
+  try {
+    const userId = await AsyncStorage.getItem("userId");
+    if (userId !== null) {
+      console.log("User ID loaded successfully: ", userId);
+      return userId;
+    } else {
+      console.log("User ID not found in storage.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error loading user ID: ", error);
+    return null;
+  }
+};
 export default class ExampleFour extends Component {
   constructor(props) {
     super(props);
@@ -57,8 +92,8 @@ export default class ExampleFour extends Component {
         ["29", "Free", false],
         ["30", "Free", false],
       ],
-      // Keep track of whether any button has been pressed
       anyButtonPressed: false,
+      errorMessage: "", // New state variable for error message
     };
   }
 
@@ -67,20 +102,43 @@ export default class ExampleFour extends Component {
     const currentStatus = tableData[index][1];
 
     if (currentStatus === "Free") {
-      // If the current status is "Free"
-      tableData[index][1] = "Occupied";
+      const anyGreenPressed = tableData.some((row) => row[1] === "Occupied");
 
-      // Sort the rows so that "Occupied" rows are at the top
-      tableData.sort((a, b) => {
-        if (a[1] === "Occupied") return -1;
-        if (b[1] === "Occupied") return 1;
-        return 0;
-      });
+      if (anyGreenPressed) {
+        // If any green button has been pressed, show an error message
+        this.setState({
+          errorMessage: "Error: You can't press other green buttons.",
+        });
+      } else {
+        // Set the status to "Occupied" and clear the error message
+        tableData[index][1] = "Occupied";
+        this.setState({ tableData, errorMessage: "" });
 
-      this.setState({ tableData, anyButtonPressed: true });
+        // Sort the rows so that "Occupied" rows are at the top
+        tableData.sort((a, b) => {
+          if (a[1] === "Occupied") return -1;
+          if (b[1] === "Occupied") return 1;
+          return 0;
+        });
+      }
+    } else if (currentStatus === "Occupied") {
+      // Show a confirmation message when the yellow button is pressed
+      Alert.alert("Confirmation", "Are you sure you want to leave?", [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            // Change the status back to "Free" when the user confirms
+            tableData[index][1] = "Free";
+            this.setState({ tableData });
+          },
+        },
+      ]);
     }
   }
-
   _toggleColor(index) {
     const { tableData } = this.state;
     tableData[index][2] = !tableData[index][2]; // Toggle the boolean flag
@@ -96,7 +154,7 @@ export default class ExampleFour extends Component {
       tableData.unshift(movedYellowRow[0]);
     }
 
-    // If the "Report" button is pressed and it becomes yellow (active), move the row below the yellow button
+    // If the "Report" button is pressed and it becomes purple (active), move the row below the yellow button
     if (tableData[index][2]) {
       const movedRow = tableData.splice(index, 1);
       tableData.splice(1, 0, movedRow[0]);
@@ -109,6 +167,10 @@ export default class ExampleFour extends Component {
 
     return (
       <ScrollView vertical={true} contentContainerStyle={{ paddingTop: 40 }}>
+        {state.errorMessage ? (
+          <Text style={styles.errorMessage}>{state.errorMessage}</Text>
+        ) : null}
+
         <Table borderStyle={{ borderColor: "transparent" }}>
           <Row
             data={state.tableHead}
@@ -153,8 +215,6 @@ export default class ExampleFour extends Component {
                               cellData === "Free" ? "green" : "#FFD700",
                           },
                         ]}
-                        // Disable button if any button has been pressed
-                        disabled={state.anyButtonPressed}
                       >
                         <Text style={[styles.btnText, { fontWeight: "bold" }]}>
                           {cellData}
@@ -171,7 +231,6 @@ export default class ExampleFour extends Component {
                               : "lightgray",
                           },
                         ]}
-                        // Disable the "Report" button if the adjacent "Status_color" button is yellow
                         disabled={rowData[1] === "Occupied"}
                       >
                         <Text style={[styles.btnText, { fontWeight: "bold" }]}>
@@ -230,4 +289,11 @@ const styles = StyleSheet.create({
     backgroundColor: "lightgray",
   },
   btnText: { textAlign: "center", color: "#fff" },
+  errorMessage: {
+    color: "red",
+    textAlign: "center",
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });
