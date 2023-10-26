@@ -7,17 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import {
-  requestUserPermission,
-  NotificationListener,
-} from "./node_modules/react-native-push-notification/src/main/utils/pushnotification_helper";
 import { Table, TableWrapper, Row, Cell } from "react-native-table-component";
-const App = () => {
-  useEffect(() => {
-    requestUserPermission();
-    NotificationListener();
-  }, []);
-};
 const saveUserId = async (userId) => {
   try {
     await AsyncStorage.setItem("userId", userId);
@@ -93,7 +83,7 @@ export default class ExampleFour extends Component {
         ["30", "Free", false],
       ],
       anyButtonPressed: false,
-      errorMessage: "", // New state variable for error message
+      errorMessage: "",
     };
   }
 
@@ -114,7 +104,7 @@ export default class ExampleFour extends Component {
         tableData[index][1] = "Occupied";
         this.setState({ tableData, errorMessage: "" });
 
-        // Sort the rows so that "Occupied" rows are at the top
+// Sort the rows so that "Occupied" rows are at the top
         tableData.sort((a, b) => {
           if (a[1] === "Occupied") return -1;
           if (b[1] === "Occupied") return 1;
@@ -123,20 +113,26 @@ export default class ExampleFour extends Component {
       }
     } else if (currentStatus === "Occupied") {
       // Show a confirmation message when the yellow button is pressed
-      Alert.alert("Confirmation", "Are you sure you want to leave?", [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
-        {
-          text: "OK",
-          onPress: () => {
-            // Change the status back to "Free" when the user confirms
-            tableData[index][1] = "Free";
-            this.setState({ tableData });
+      Alert.alert(
+        "Confirmation",
+        "Are you sure you want to leave?",
+        [
+          {
+            text: "Cancel",
+            style: "cancel",
           },
-        },
-      ]);
+          {
+            text: "OK",
+            style: "destructive", // Customize the style of the "OK" button
+            onPress: () => {
+              // Change the status back to "Free" when the user confirms
+              tableData[index][1] = "Free";
+              this.setState({ tableData });
+            },
+          },
+        ],
+        { cancelable: false } // Prevent dismissing the alert by tapping outside of it
+      );
     }
   }
   _toggleColor(index) {
@@ -224,7 +220,8 @@ export default class ExampleFour extends Component {
                       <TouchableOpacity
                         onPress={() => this._toggleColor(index)}
                         style={[
-                          styles.generalCell,
+
+styles.generalCell,
                           {
                             backgroundColor: rowData[2]
                               ? "purple"
@@ -297,3 +294,46 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+_toggleStatus(index) {
+    const { tableData } = this.state;
+    const currentStatus = tableData[index][1];
+
+    if (currentStatus === "Free") {
+      const anyGreenPressed = tableData.some((row) => row[1] === "Occupied");
+
+      if (anyGreenPressed) {
+        // If any green button has been pressed, show an error message
+        this.setState({
+          errorMessage: "Error: You can't press other green buttons.",
+        });
+      } else {
+        // Set the status to "Occupied" and clear the error message
+        tableData[index][1] = "Occupied";
+        this.setState({ tableData, errorMessage: "" });
+
+        // Sort the rows so that "Occupied" rows are at the top
+        tableData.sort((a, b) => {
+          if (a[1] === "Occupied") return -1;
+          if (b[1] === "Occupied") return 1;
+          return 0;
+        });
+      }
+    } else if (currentStatus === "Occupied") {
+      // Show a confirmation message when the yellow button is pressed
+      Alert.alert("Confirmation", "Are you sure you want to leave?", [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "OK",
+          onPress: () => {
+            // Change the status back to "Free" when the user confirms
+            tableData[index][1] = "Free";
+            this.setState({ tableData });
+          },
+        },
+      ]);
+    }
+  }
