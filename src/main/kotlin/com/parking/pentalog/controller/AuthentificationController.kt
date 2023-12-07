@@ -3,6 +3,7 @@ package com.parking.pentalog.controller
 import com.parking.pentalog.DTOs.LoginDTO
 import com.parking.pentalog.DTOs.Message
 import com.parking.pentalog.DTOs.RegisterDTO
+import com.parking.pentalog.DTOs.UserEditingDTO
 import com.parking.pentalog.entities.Users
 import com.parking.pentalog.services.UserService
 import io.jsonwebtoken.Claims
@@ -18,6 +19,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -57,6 +59,18 @@ class AuthentificationController(private val userService: UserService){
 
         response.addCookie(cookie)
         return ResponseEntity.ok(Message("success"))
+    }
+    @PutMapping("/edit-user")
+    fun editUser(request: HttpServletRequest, @RequestBody body: UserEditingDTO): ResponseEntity<Any>{
+        val user = userService.getCurrentUser(request)
+        if (!body.nickname.isNullOrBlank()) {
+            user.nickname = body.nickname.toString()
+        }
+        user.userDescription = body.userDescription.toString()
+        if (body.avatarImage.toString().isNotBlank()) {
+            user.avatarImage = body.avatarImage
+        }
+        return ResponseEntity.ok(userService.saveUser(user))
     }
 
     @GetMapping("/logout")
