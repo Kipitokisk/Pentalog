@@ -5,19 +5,19 @@ import { theme } from '../core/theme'
 
 export default function TextInput({ errorText, description, ...props }) {
   return (
-    <View style={styles.container}>
-      <Input
-        style={styles.input}
-        selectionColor={theme.colors.primary}
-        underlineColor="transparent"
-        mode="outlined"
-        {...props}
-      />
-      {description && !errorText ? (
-        <Text style={styles.description}>{description}</Text>
-      ) : null}
-      {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
-    </View>
+      <View style={styles.container}>
+        <Input
+            style={styles.input}
+            selectionColor={theme.colors.primary}
+            underlineColor="transparent"
+            mode="outlined"
+            {...props}
+        />
+        {description && !errorText ? (
+            <Text style={styles.description}>{description}</Text>
+        ) : null}
+        {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
+      </View>
   )
 }
 

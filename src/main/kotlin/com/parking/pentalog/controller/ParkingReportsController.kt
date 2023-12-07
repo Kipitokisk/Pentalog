@@ -5,6 +5,7 @@ import com.parking.pentalog.DTOs.Message
 import com.parking.pentalog.DTOs.ParkingSlotDTO
 import com.parking.pentalog.DTOs.UsersDTO
 import com.parking.pentalog.entities.ParkingReports
+import com.parking.pentalog.services.AutoIncrementResetService
 import com.parking.pentalog.services.ParkingReportsService
 import com.parking.pentalog.services.ParkingSlotsService
 import com.parking.pentalog.services.UserService
@@ -18,7 +19,9 @@ import java.util.*
 @RestController
 @RequestMapping("/api")
 class ParkingReportsController (private val parkingReportsService: ParkingReportsService,
-                                private val parkingSlotService: ParkingSlotsService, private val userService: UserService){
+                                private val parkingSlotService: ParkingSlotsService,
+                                private val userService: UserService,
+                                private val autoIncrementResetService: AutoIncrementResetService){
 
     @GetMapping("/parking-list-report")
     fun parkingReportsList(): ResponseEntity<List<ReportDTO>> {
@@ -86,10 +89,11 @@ class ParkingReportsController (private val parkingReportsService: ParkingReport
     fun removeReportsForParkingLot(@PathVariable parkingSlotId: Int): ResponseEntity<Any> {
         val removedCount = parkingReportsService.removeReportsByParkingSlotId(parkingSlotId)
 
-        return if (removedCount > 0) {
-            ResponseEntity.ok(Message("Deleted $removedCount reports from Parking Slot: $parkingSlotId"))
+        if (removedCount > 0) {
+            autoIncrementResetService.resetAutoIncrementIfEmpty("parking_reports")
+            return  ResponseEntity.ok(Message("Deleted $removedCount reports from Parking Slot: $parkingSlotId"))
         } else {
-            ResponseEntity.notFound().build()
+            return ResponseEntity.notFound().build()
         }
     }
 }

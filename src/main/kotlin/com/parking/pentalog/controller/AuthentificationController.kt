@@ -5,6 +5,7 @@ import com.parking.pentalog.DTOs.Message
 import com.parking.pentalog.DTOs.RegisterDTO
 import com.parking.pentalog.entities.Users
 import com.parking.pentalog.services.UserService
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException
 import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties.Jwt
 import org.springframework.http.ResponseEntity
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.PathVariable
@@ -57,23 +59,18 @@ class AuthentificationController(private val userService: UserService){
         return ResponseEntity.ok(Message("success"))
     }
 
-    @GetMapping("/user")
-    fun user(@CookieValue("jwt") jwt: String?): ResponseEntity<Any> {
+    @GetMapping("/logout")
+    fun logout(response: HttpServletResponse): ResponseEntity<Any> {
+        val cookie = Cookie("jwt", null)
+        cookie.isHttpOnly = true
+        cookie.maxAge = 0
 
-        if (jwt == null) {
-            return ResponseEntity.status(401).body(Message("Unauthenticated"))
-        } else {
-            try {
-                val body = Jwts.parser()
-                    .setSigningKey("vadim")
-                    .parseClaimsJws(jwt)
-                    .body
-                return ResponseEntity.ok(this.userService.getById(body.issuer.toInt()))
-            } catch (e: JwtException) {
-                return ResponseEntity.status(401).body(Message("Invalid token"))
-            }
-        }
+        response.addCookie(cookie)
+
+        return ResponseEntity.ok(Message("Logout successful"))
     }
+    @GetMapping("/user")
+    fun user(request: HttpServletRequest): ResponseEntity<Any> = ResponseEntity.ok(userService.getCurrentUser(request))
     @GetMapping("/user/{userID}")
     fun getUser(@PathVariable("userID") id: Int): ResponseEntity<Users> = ResponseEntity.ok(userService.getById(id))
 }

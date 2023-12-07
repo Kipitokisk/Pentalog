@@ -23,6 +23,10 @@ class Users{
             val passwordEncoder = BCryptPasswordEncoder()
             field = passwordEncoder.encode(value)
         }
+    @OneToMany(mappedBy = "users", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    private val _usersDevice : List<UsersDevice> = mutableListOf()
+    val usersDevice @JsonIgnore
+    get() = _usersDevice.toList()
     fun comparePasswords(password: String): Boolean{
         return BCryptPasswordEncoder().matches(password, this.password)
     }

@@ -11,6 +11,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.*
 import io.jsonwebtoken.Jwts
+import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpOutputMessage
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
 
@@ -114,5 +116,10 @@ class ParkingSlotsController (private val parkingSlotsService : ParkingSlotsServ
         } catch (e: DataAccessException) {
             return ResponseEntity.status(400).body(Message("Bad request"))
         }
+    }
+
+    @PutMapping("/occupy")
+    fun occupyParkingSlot(request: HttpServletRequest): ResponseEntity<Any>{
+        return ResponseEntity.ok(parkingSlotsService.occupyParkingSlot(request))
     }
 }

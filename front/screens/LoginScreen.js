@@ -9,13 +9,14 @@ import TextInput from '../components/TextInput';
 import {theme} from '../core/theme';
 import {emailValidator} from '../helpers/emailValidator';
 import {passwordValidator} from '../helpers/passwordValidator';
-import {BASE_URL} from '../config'
 import axios from "axios";
+import {BASE_URL} from "../config";
 
 export default function LoginScreen({navigation}) {
-    const [email, setEmail] = useState({value: '', error: ''});
-    const [password, setPassword] = useState({value: '', error: ''});
+    const [email, setEmail] = useState({value: null, error: ''});
+    const [password, setPassword] = useState({value: null, error: ''});
     const [loginError, setLoginError] = useState('');
+
     const onLoginPressed = async () => {
         const emailError = emailValidator(email.value)
         const passwordError = passwordValidator(password.value)
@@ -25,16 +26,16 @@ export default function LoginScreen({navigation}) {
             return
         }
         try{
-            const response = await axios.post(BASE_URL + '/api/login', {
+            const response = await axios.post(`${BASE_URL}/api/login`, {
                 email: email.value,
                 password: password.value,
             });
-            if(response.status == 200) {
+            if(response.status === 200) {
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'MainScreen'}],
+                    routes: [{ name: 'Tabs'}],
                 });
-            }else {
+            }else if(response.status === 400 ) {
                 setLoginError('Incorrect email or password.')
             }
         }  catch (error){
@@ -92,7 +93,7 @@ export default function LoginScreen({navigation}) {
                     </Button>
                     <View style={styles.row}>
                         <Text>Don’t have an account? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                             <Text style={styles.link}>Sign up</Text>
                         </TouchableOpacity>
                     </View>

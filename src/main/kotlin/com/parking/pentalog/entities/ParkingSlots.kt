@@ -2,6 +2,9 @@ package com.parking.pentalog.entities
 
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
+import org.springframework.data.auditing.CurrentDateTimeProvider
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 
@@ -24,4 +27,9 @@ class ParkingSlots {
     @OneToOne(cascade = [CascadeType.ALL])
     @JoinColumn(name = "usersid")
     var users: Users? = null;
-}
+
+    fun occupySlot(user: Users){
+        this.isOccupied = true
+        this.parkingTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant())
+        this.users = user
+    }}

@@ -1,27 +1,56 @@
-import React from 'react'
-import { Provider } from 'react-native-paper'
-import { NavigationContainer } from '@react-navigation/native'
-import { createStackNavigator } from '@react-navigation/stack'
-import { theme } from '../core/theme'
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { theme } from '../core/theme';
+import { Provider } from 'react-native-paper';
 import {
     LoginScreen,
     MainScreen,
     RegisterScreen,
-    BottomNavigation
-} from '../app/defaultExport'
+    ProfileScreen,
+} from '../app/defaultExport';
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { Ionicons} from "@expo/vector-icons";
 
-const Stack = createStackNavigator()
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator(); // Use createStackNavigator instead of createNativeStackNavigator
 
-export default function Index() {
+const TabNavigator = () => {
     return (
-        <Provider theme={ theme }>
+        <Tab.Navigator initialRouteName={MainScreen}
+        screenOptions={({ route}) => ({
 
+            tabBarIcon: ({focused, color, size}) => {
+                let iconName;
+                let rn = route.name;
+
+                if (rn === "Main"){
+                    iconName = focused ? 'home' : 'home-outline';
+                } else if (rn === "Profile"){
+                    iconName = focused ? 'list' : 'list-outline';
+                }
+
+                return <Ionicons name={iconName} size={size} color={color}/>
+            },
+
+        })}
+        >
+            <Tab.Screen name="Main" component={MainScreen} />
+            <Tab.Screen name="Profile" component={ProfileScreen} />
+        </Tab.Navigator>
+    );
+};
+
+export default function AppNavigation() {
+    return (
+        <Provider theme={theme}>
             <NavigationContainer independent={true}>
-
-                <BottomNavigation/>
-
+                <Stack.Navigator initialRouteName="Login" screenOptions={{headerShown: false}}>
+                    <Stack.Screen name="Login" component={LoginScreen}/>
+                    <Stack.Screen name="Register" component={RegisterScreen}/>
+                    <Stack.Screen name="Tabs" component={TabNavigator}/>
+                </Stack.Navigator>
             </NavigationContainer>
-
         </Provider>
-    )
+    );
 }
