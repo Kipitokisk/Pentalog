@@ -1,3 +1,3 @@
-const BASE_URL = 'https://9aed-91-242-113-206.ngrok.io';
+const BASE_URL = 'https://f5b0-91-242-113-151.ngrok.io';
 
 export {BASE_URL}

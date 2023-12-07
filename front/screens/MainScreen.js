@@ -13,16 +13,17 @@ const MainScreen = () => {
   const [pressedReportButtonId, setPressedReportButtonId] = useState(null);
 
   useEffect(() => {
-    fetchData();
     fetchUserData();
+
     const intervalID = setInterval(() => {
       fetchData();
-      fetchReports();
-    }, 1000);
+      setTimeout(() => {
+        fetchReports();
+      }, 1000);
+    }, 2000); // Increased interval to 2 seconds to accommodate fetchData and the delay for fetchReports
 
-    return () => clearInterval(intervalID);
+    return () => clearInterval(intervalID); // Cleanup on component unmount
   }, []);
-
   const fetchUserData = () => {
     axios.get(BASE_URL + '/api/user')
       .then(response => {
@@ -78,15 +79,13 @@ const MainScreen = () => {
               onPress: () => {
                 axios
                   .put(apiUrl, null, {
-                    headers: {
-                      Authorization: 'Bearer ' + token,
-                    },
+
                   })
                   .then(() => {
                     fetchData();
                   })
                   .catch((error) => {
-                    Alert.alert('You can only occupy one lot.');
+                    Alert.alert('Error','Something went wrong when occupying a parking lot.');
                     console.error('Error updating parking status:', error);
                   });
               },
@@ -95,21 +94,18 @@ const MainScreen = () => {
           { cancelable: false }
         );
       } else {
-        showMessage('You can only leave parking lots that you occupy.');
+        Alert.alert('Error','You can only leave parking lots that you occupied.');
       }
     } else {
       axios
         .put(apiUrl, null, {
-          headers: {
-            Authorization: 'Bearer ' + token,
-          },
         })
         .then(() => {
           fetchData();
           fetchReports();
         })
         .catch((error) => {
-          Alert.alert('You can only occupy one lot.');
+          Alert.alert('Error','You can only occupy one parking lot.');
           console.error('Error updating parking status:', error);
         });
     }

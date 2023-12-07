@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 
 interface ParkingSlotsRepository: JpaRepository<ParkingSlots, Int> {
+    fun findByIsOccupiedFalse() : List<ParkingSlots>
 }

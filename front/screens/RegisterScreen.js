@@ -11,7 +11,7 @@ import { emailValidator } from '../helpers/emailValidator';
 import { passwordValidator } from '../helpers/passwordValidator';
 import { nameValidator } from '../helpers/nameValidator';
 import axios from 'axios';
-import {BASE_URL} from '../config'
+import {BASE_URL} from "../config";
 
 export default function RegisterScreen({ navigation }) {
     const [nickname, setNickname] = useState({ value: '', error: '' });
@@ -36,7 +36,7 @@ export default function RegisterScreen({ navigation }) {
         }
 
         try {
-            const response = await axios.post(BASE_URL + '/api/register', {
+            const response = await axios.post(`${BASE_URL}/api/register`, {
                 nickname: nickname.value,
                 email: email.value,
                 password: password.value,
@@ -44,7 +44,7 @@ export default function RegisterScreen({ navigation }) {
             if (response.status === 200) {
                 navigation.reset({
                     index: 0,
-                    routes: [{ name: 'MainScreen' }],
+                    routes: [{ name: 'Login' }],
                 });
             } else {
                 console.error('Unable to register');
@@ -56,7 +56,6 @@ export default function RegisterScreen({ navigation }) {
 
     return (
         <Background>
-            <BackButton goBack={navigation.goBack} />
             <View style={{ left: 140 }}>
                 <Logo />
             </View>
@@ -105,7 +104,7 @@ export default function RegisterScreen({ navigation }) {
                     </Button>
                     <View style={styles.row}>
                         <Text>Already have an account? </Text>
-                        <TouchableOpacity onPress={() => navigation.replace('LoginScreen')}>
+                        <TouchableOpacity onPress={() => navigation.replace('Login')}>
                             <Text style={styles.link}>Login</Text>
                         </TouchableOpacity>
                     </View>
