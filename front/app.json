@@ -8,6 +8,14 @@
       "expo-router"
     ],
     "name": "view",
-    "slug": "view"
+    "slug": "view",
+    "android": {
+      "permissions": ["CAMERA"]
+    },
+    "ios": {
+      "infoPlist": {
+        "NSCameraUsageDescription": "Your message explaining why you need camera access"
+      }
+    }
   }
 }

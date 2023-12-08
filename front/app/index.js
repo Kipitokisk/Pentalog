@@ -8,6 +8,7 @@ import {
     MainScreen,
     RegisterScreen,
     ProfileScreen,
+    ParkingSlotScreen
 } from '../app/defaultExport';
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons} from "@expo/vector-icons";
@@ -37,6 +38,7 @@ const TabNavigator = () => {
         >
             <Tab.Screen name="Main" component={MainScreen} />
             <Tab.Screen name="Profile" component={ProfileScreen} />
+            <Tab.Screen name="Parking" component={ParkingSlotScreen} />
         </Tab.Navigator>
     );
 };
