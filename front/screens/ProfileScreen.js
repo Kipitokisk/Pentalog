@@ -28,8 +28,15 @@ const ProfileDetail = ({ navigation }) => {
   }, []);
 
   const handleLogout = () => {
+            axios.get(BASE_URL + '/api/logout')
+            .then(response => {
+            navigation.replace('Login');
+            })
+            .catch(error => {
+            console.log("Error logging out:", error);
+            });
           // If the server returns a success message, navigate to the login screen
-          navigation.replace('Login');
+
     };
 
   return (

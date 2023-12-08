@@ -35,7 +35,7 @@ export default function LoginScreen({navigation}) {
                     index: 0,
                     routes: [{ name: 'Tabs'}],
                 });
-            }else if(response.status === 400 ) {
+            }else if(response.status !== 200 ) {
                 setLoginError('Incorrect email or password.')
             }
         }  catch (error){

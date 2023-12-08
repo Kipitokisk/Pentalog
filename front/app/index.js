@@ -18,7 +18,7 @@ const Stack = createStackNavigator(); // Use createStackNavigator instead of cre
 
 const TabNavigator = () => {
     return (
-        <Tab.Navigator initialRouteName={MainScreen}
+        <Tab.Navigator initialRouteName={ParkingSlotScreen}
         screenOptions={({ route}) => ({
 
             tabBarIcon: ({focused, color, size}) => {
@@ -29,6 +29,8 @@ const TabNavigator = () => {
                     iconName = focused ? 'home' : 'home-outline';
                 } else if (rn === "Profile"){
                     iconName = focused ? 'list' : 'list-outline';
+                } else if (rn === "Parking"){
+                    iconName = focused ? 'scan' : 'scan-outline';
                 }
 
                 return <Ionicons name={iconName} size={size} color={color}/>
@@ -37,8 +39,8 @@ const TabNavigator = () => {
         })}
         >
             <Tab.Screen name="Main" component={MainScreen} />
-            <Tab.Screen name="Profile" component={ProfileScreen} />
             <Tab.Screen name="Parking" component={ParkingSlotScreen} />
+            <Tab.Screen name="Profile" component={ProfileScreen} />
         </Tab.Navigator>
     );
 };
