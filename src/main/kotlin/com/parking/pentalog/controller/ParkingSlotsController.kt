@@ -122,4 +122,12 @@ class ParkingSlotsController (private val parkingSlotsService : ParkingSlotsServ
     fun occupyParkingSlot(request: HttpServletRequest): ResponseEntity<Any>{
         return ResponseEntity.ok(parkingSlotsService.occupyParkingSlot(request))
     }
+
+    @PutMapping("/free")
+    fun freeParkingSlot(request: HttpServletRequest): ResponseEntity<Any> = ResponseEntity.ok(parkingSlotsService.freeParkingSlot(request))
+    @GetMapping("/user-occupy")
+    fun checkIfUserOccupiesParkingSlot(request: HttpServletRequest): Boolean = parkingSlotsService.isUserOccupyingParkingSlot(request)
+
+    @GetMapping("/user-occupy-id")
+    fun getOccupiedParkingSlotID(request: HttpServletRequest): Int? = parkingSlotsService.getUserOccupyingParkingSlot(request)
 }

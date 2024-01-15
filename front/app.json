@@ -10,11 +10,22 @@
     "name": "view",
     "slug": "view",
     "android": {
-      "permissions": ["CAMERA"]
+      "permissions": [
+        "CAMERA"
+      ],
+      "package": "com.dott13.view"
     },
     "ios": {
       "infoPlist": {
         "NSCameraUsageDescription": "Your message explaining why you need camera access"
+      }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "526bf082-969b-4b99-a115-71193cc74ef9"
       }
     }
   }

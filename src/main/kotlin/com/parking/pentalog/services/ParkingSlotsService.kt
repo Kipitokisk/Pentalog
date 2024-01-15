@@ -26,4 +26,27 @@ class ParkingSlotsService(private val parkingSlotsRepository: ParkingSlotsReposi
 
         return parkingSlotsRepository.save(freeParkingSlot)
     }
+    fun freeParkingSlot(request: HttpServletRequest): ParkingSlots?{
+        val currentUser = userService.getCurrentUser(request)
+        val occupiedParkingSlot = parkingSlotsRepository.findByUsersIdAndIsOccupiedTrue(currentUser.id)
+        return if( occupiedParkingSlot != null){
+            occupiedParkingSlot.isOccupied = false
+            occupiedParkingSlot.parkingTime = null
+            occupiedParkingSlot.users = null
+
+            parkingSlotsRepository.save(occupiedParkingSlot)
+        } else {
+            null
+        }
+    }
+    fun isUserOccupyingParkingSlot(request: HttpServletRequest): Boolean{
+        val currentUser = userService.getCurrentUser(request)
+        val occupiedParkingSlot = parkingSlotsRepository.findByUsersIdAndIsOccupiedTrue(currentUser.id)
+        return occupiedParkingSlot != null
+    }
+    fun getUserOccupyingParkingSlot(request: HttpServletRequest): Int? {
+        val currentUser = userService.getCurrentUser(request)
+        val occupiedParkingSlot = parkingSlotsRepository.findByUsersIdAndIsOccupiedTrue(currentUser.id)
+        return occupiedParkingSlot?.id
+    }
 }
